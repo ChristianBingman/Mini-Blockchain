@@ -1,12 +1,14 @@
+
 #include<iostream>
 #include<string>
 #include"picosha2.h"
 #include<random>
+#include<time.h>
 
 using namespace std;
 
 struct Transaction{
-    string Id;
+    long long Id;
     unsigned int timestamp;
     string from;
     string to;
@@ -21,40 +23,68 @@ class Block{
         string getPrevHash(){
             return previousHash;
         }
-        vector<Transaction> getTransactions(){
+        vector<Transaction*> getTransactions(){
             return transactions;
         }
-        void addTransaction(Transaction trans);
-        string getHash(){
-            return myHash;
+        void addTransaction(string from, string to, long long id = rand() * rand()){
+            Transaction* newTrans = new Transaction;
+            newTrans->from = from;
+            newTrans->to = to;
+            newTrans->Id = id;
+            newTrans->timestamp = time(NULL);
+            transactions.push_back(newTrans);
+        }
+        string stringifyAndFormatTransactions(){
+            string transString = "";
+            for (int i = 0; i < transactions.size(); i++){
+                transString.append("Id: ");
+                transString.append(to_string(transactions[i]->Id));
+                transString.append(": ");
+                transString.append("\n");
+                transString.append("\t");
+                transString.append("To: ");
+                transString.append(transactions[i]->to);
+                transString.append("\n");
+                transString.append("\t");
+                transString.append("From: ");
+                transString.append(transactions[i]->from);
+                transString.append("\n");
+                transString.append("\t");
+                transString.append("Time: ");
+                transString.append(to_string(transactions[i]->timestamp));
+                transString.append("\n");
+            }
+            return transString;
+        }
+        string stringifyTransactions(){
+            string transString = "";
+            for (int i = 0; i < transactions.size(); i++){
+                transString.append(to_string(transactions[i]->Id));
+                transString.append(transactions[i]->to);
+                transString.append(transactions[i]->from);
+                transString.append(to_string(transactions[i]->timestamp));
+            }
+            return transString;
         }
         string hashBlock(){
-
+            string hashStr = "";
+            hashStr.append(stringifyTransactions());
+            hashStr.append(previousHash);
+            hashStr = picosha2::hash256_hex_string(hashStr);
+            myHash = hashStr;
+            return hashStr;
         }
     private:
         string previousHash;
         string myHash;
-        vector<Transaction> transactions;
+        vector<Transaction*> transactions;
 };
-
-void Block::
-
-string hashTrans(Transaction trans){
-    string completeString = "";
-    completeString.append(trans.from);
-    completeString.append(trans.to);
-    completeString.append(to_string(trans.timestamp));
-    return picosha2::hash256_hex_string(completeString);
-}
 
 int main(){
     Transaction trans1;
     Block newBlock;
-    cout << newBlock.getPrevHash() << endl;
     srand(time(NULL));
-    trans1.from = "Christian";
-    trans1.to = "John";
-    trans1.timestamp = time(NULL);
-    trans1.Id = hashTrans(trans1);
-    cout << trans1.Id << endl;
+    newBlock.addTransaction("Christian", "John");
+    cout << newBlock.stringifyTransactions() << endl;
+    cout << newBlock.hashBlock() << endl;
 }
