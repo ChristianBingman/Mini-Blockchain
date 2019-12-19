@@ -20,6 +20,10 @@ class Block{
             previousHash = "";
             myHash = "";
         }
+        Block(string previousH){
+            previousHash = previousH;
+            myHash = "";
+        }
         string getPrevHash(){
             return previousHash;
         }
@@ -74,17 +78,60 @@ class Block{
             myHash = hashStr;
             return hashStr;
         }
+        string getHash(){
+            return myHash;
+        }
+        void setPreviousHash(string previousH){
+            previousHash = previousH;
+        }
     private:
         string previousHash;
         string myHash;
         vector<Transaction*> transactions;
 };
 
+class BlockChain{
+    public:
+        BlockChain(){
+            hashIntegrity = true;
+        }
+        void addBlock(Block& newBlock){
+            if(newBlock.getHash() == ""){
+                cout << "Please Hash Block before adding!" << endl;
+            }else{
+                if (blocks.size() != 0)
+                {
+                    newBlock.setPreviousHash(blocks[blocks.size()-1]->getHash());
+                }
+                blocks.push_back(&newBlock);
+            }
+        }
+        void printChain(){
+            for (int i = 0; i < blocks.size(); i++){
+                cout << "Block " << i << ":\n\tHash: " << blocks[i]->getHash() << endl;
+            }
+        }
+        Block* getBlock(int blockIndex){
+            return blocks[blockIndex];
+        }
+    private:
+        vector<Block*>  blocks;
+        bool hashIntegrity;
+};
+
 int main(){
     Transaction trans1;
     Block newBlock;
+    BlockChain* newBC = new BlockChain();
     srand(time(NULL));
     newBlock.addTransaction("Christian", "John");
-    cout << newBlock.stringifyTransactions() << endl;
-    cout << newBlock.hashBlock() << endl;
+    newBlock.addTransaction("John", "Jane");
+    newBlock.hashBlock();
+    newBC->addBlock(newBlock);
+    Block block2;
+    block2.addTransaction("Christian", "Finch");
+    block2.addTransaction("Anna", "Finch");
+    block2.hashBlock();
+    newBC->addBlock(block2);
+    newBC->printChain();
 }
