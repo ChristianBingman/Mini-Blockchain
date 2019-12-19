@@ -95,6 +95,25 @@ class BlockChain{
         BlockChain(){
             hashIntegrity = true;
         }
+        void printChain(){
+            for (int i = 0; i < blocks.size(); i++){
+                cout << "Block " << i << ":\n\tHash: " << blocks[i]->getHash() << endl;
+            }
+        }
+        Block* getBlock(int blockIndex){
+            return blocks[blockIndex];
+        }
+        bool VerifyChain(){
+            for(int i = 0; i < blocks.size(); i++){
+                if(i != 0){
+                    if(blocks[i-1]->hashBlock() != blocks[i]->getPrevHash()){
+                        hashIntegrity = false;
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
         void addBlock(Block& newBlock){
             if(newBlock.getHash() == ""){
                 cout << "Please Hash Block before adding!" << endl;
@@ -105,14 +124,12 @@ class BlockChain{
                 }
                 blocks.push_back(&newBlock);
             }
-        }
-        void printChain(){
-            for (int i = 0; i < blocks.size(); i++){
-                cout << "Block " << i << ":\n\tHash: " << blocks[i]->getHash() << endl;
+            if(VerifyChain()){
+                cout << "Block Added Succesfully!" << endl;
+            }else{
+                cout << "Block Added But Chain is Invalid Removing Block..." << endl;
+                blocks.pop_back();
             }
-        }
-        Block* getBlock(int blockIndex){
-            return blocks[blockIndex];
         }
     private:
         vector<Block*>  blocks;
@@ -132,6 +149,7 @@ int main(){
     block2.addTransaction("Christian", "Finch");
     block2.addTransaction("Anna", "Finch");
     block2.hashBlock();
+    newBlock.addTransaction("Jane", "Chris");
     newBC->addBlock(block2);
     newBC->printChain();
 }
