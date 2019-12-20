@@ -4,6 +4,7 @@
 #include"picosha2.h"
 #include<random>
 #include<time.h>
+#include<math.h>
 
 using namespace std;
 
@@ -14,15 +15,27 @@ struct Transaction{
     string to;
 };  
 
+uint32_t decToHex(string hexStr){
+    int decLength = hexStr.length();
+    uint32_t sum = 0;
+    for(int i = 0; i < hexStr.length(); i++){
+        sum += pow(hexStr[i], decLength);
+        decLength--;
+    }
+    return sum;
+}
+
 class Block{
     public:
         Block(){
             previousHash = "";
             myHash = "";
+            PoWNonce = 0;
         }
         Block(string previousH){
             previousHash = previousH;
             myHash = "";
+            PoWNonce = 0;
         }
         string getPrevHash(){
             return previousHash;
@@ -78,16 +91,33 @@ class Block{
             myHash = hashStr;
             return hashStr;
         }
+        string hashWithNonce(){
+            string hashStr = "";
+            hashStr.append(stringifyTransactions());
+            hashStr.append(previousHash);
+            hashStr.append(to_string(PoWNonce));
+            hashStr = picosha2::hash256_hex_string(hashStr);
+            myHash = hashStr;
+            return hashStr;
+        }
         string getHash(){
             return myHash;
         }
         void setPreviousHash(string previousH){
             previousHash = previousH;
         }
+        void incPoW(){
+            PoWNonce++;
+        }
+        int getNonce(){
+            return PoWNonce;
+        }
+
     private:
         string previousHash;
         string myHash;
         vector<Transaction*> transactions;
+        int PoWNonce;
 };
 
 class BlockChain{
@@ -100,7 +130,7 @@ class BlockChain{
                 cout << "Block " << i << ":\n\tHash: " << blocks[i]->getHash() << endl;
             }
         }
-        Block* getBlock(int blockIndex){
+        Block* getBlock(int blockIndex, int powLevel){
             return blocks[blockIndex];
         }
         bool VerifyChain(){
@@ -114,7 +144,19 @@ class BlockChain{
             }
             return true;
         }
-        void addBlock(Block& newBlock){
+        string doPoW(Block& newBlock, int PoWLevel){
+            string hashStr;
+            while(true){
+                hashStr = newBlock.hashWithNonce();
+                uint32_t newHex = decToHex(hashStr);
+                newBlock.incPoW();
+                if(newHex < PoWLevel){
+                    return hashStr;
+                }
+            }
+            return hashStr;
+        }
+        void addBlock(Block& newBlock, int PoWLevel){
             if(newBlock.getHash() == ""){
                 cout << "Please Hash Block before adding!" << endl;
             }else{
@@ -122,34 +164,38 @@ class BlockChain{
                 {
                     newBlock.setPreviousHash(blocks[blocks.size()-1]->getHash());
                 }
-                blocks.push_back(&newBlock);
+                string isPoW = doPoW(newBlock, PoWLevel);
+                cout << "Hash: " << isPoW << "\nNonce: " << newBlock.getNonce() << endl;
+                if(isPoW != ""){
+                    blocks.push_back(&newBlock);
+                    if(VerifyChain()){
+                        cout << "Block Added Succesfully!" << endl;
+                    }else{
+                        cout << "Block Added But Chain is Invalid Removing Block..." << endl;
+                        blocks.pop_back();
+                    }
+                }else{
+                    cout << "Proof of Work Failed! Block will not be added!" << endl;
+                }
+                
             }
-            if(VerifyChain()){
-                cout << "Block Added Succesfully!" << endl;
-            }else{
-                cout << "Block Added But Chain is Invalid Removing Block..." << endl;
-                blocks.pop_back();
-            }
+            
         }
     private:
         vector<Block*>  blocks;
         bool hashIntegrity;
 };
 
+void Menu(){
+    
+}
+
 int main(){
-    Transaction trans1;
-    Block newBlock;
-    BlockChain* newBC = new BlockChain();
+    int PoWLevel;
+    BlockChain newBC;
+
     srand(time(NULL));
-    newBlock.addTransaction("Christian", "John");
-    newBlock.addTransaction("John", "Jane");
-    newBlock.hashBlock();
-    newBC->addBlock(newBlock);
-    Block block2;
-    block2.addTransaction("Christian", "Finch");
-    block2.addTransaction("Anna", "Finch");
-    block2.hashBlock();
-    newBlock.addTransaction("Jane", "Chris");
-    newBC->addBlock(block2);
-    newBC->printChain();
+    Menu();
+    return 0;
+
 }
