@@ -19,7 +19,30 @@ uint32_t decToHex(string hexStr){
     int decLength = hexStr.length();
     uint32_t sum = 0;
     for(int i = 0; i < hexStr.length(); i++){
-        sum += pow(hexStr[i], decLength);
+        switch (hexStr[i])
+        {
+        case 'a':
+            sum += pow(10, decLength);
+            break;
+        case 'b':
+            sum += pow(11, decLength);
+            break;
+        case 'c':
+            sum += pow(12, decLength);
+            break;
+        case 'd':
+            sum += pow(13, decLength);
+            break;
+        case 'e':
+            sum += pow(14, decLength);
+            break;
+        case 'f':
+            sum += pow(15, decLength);
+            break;
+        default:
+            sum += pow(hexStr[i], decLength);
+            break;
+        }
         decLength--;
     }
     return sum;
@@ -186,16 +209,20 @@ class BlockChain{
         bool hashIntegrity;
 };
 
-void Menu(){
-    
-}
-
 int main(){
     int PoWLevel;
     BlockChain newBC;
-
     srand(time(NULL));
-    Menu();
+    Block* newBlock = new Block();
+    newBlock->addTransaction("Christian", "John");
+    newBlock->hashBlock();
+    newBC.addBlock(*newBlock, 1000000000);
+    newBlock = new Block();
+    newBlock->stringifyAndFormatTransactions();
+    newBlock->addTransaction("Christian", "Jane");
+    newBlock->hashBlock();
+    newBC.addBlock(*newBlock, 1000000000);
+    cout << newBlock->getPrevHash() << endl;
     return 0;
 
 }
